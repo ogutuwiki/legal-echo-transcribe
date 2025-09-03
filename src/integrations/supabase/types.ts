@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          license_number: string | null
+          organization: string | null
+          phone: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          license_number?: string | null
+          organization?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          license_number?: string | null
+          organization?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transcription_segments: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          end_time: number | null
+          id: string
+          segment_order: number
+          speaker_label: string
+          start_time: number | null
+          text_content: string
+          transcription_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          end_time?: number | null
+          id?: string
+          segment_order: number
+          speaker_label: string
+          start_time?: number | null
+          text_content: string
+          transcription_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          end_time?: number | null
+          id?: string
+          segment_order?: number
+          speaker_label?: string
+          start_time?: number | null
+          text_content?: string
+          transcription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transcription_segments_transcription_id_fkey"
+            columns: ["transcription_id"]
+            isOneToOne: false
+            referencedRelation: "transcriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transcriptions: {
+        Row: {
+          audio_duration: number | null
+          case_number: string | null
+          confidence_score: number | null
+          content: string
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          hearing_type: string | null
+          id: string
+          speaker_count: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audio_duration?: number | null
+          case_number?: string | null
+          confidence_score?: number | null
+          content: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          hearing_type?: string | null
+          id?: string
+          speaker_count?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audio_duration?: number | null
+          case_number?: string | null
+          confidence_score?: number | null
+          content?: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          hearing_type?: string | null
+          id?: string
+          speaker_count?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

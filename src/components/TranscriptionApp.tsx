@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Upload, Mic, MicOff, Play, Pause, Download, Copy, FileText, Loader2 } from 'lucide-react';
+import { Upload, Mic, MicOff, Download, Copy, FileText, Loader2, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import TranscriptionService from '@/services/transcriptionService';
 import heroImage from '@/assets/legal-hero.jpg';
 
@@ -20,10 +22,19 @@ const TranscriptionApp = () => {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptionService = TranscriptionService.getInstance();
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
+
+  // Fetch user profile
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
 
   // Initialize transcription service on component mount
   useEffect(() => {
@@ -49,6 +60,41 @@ const TranscriptionApp = () => {
 
     initService();
   }, []);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Signed Out",
+        description: "You have been successfully signed out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Sign Out Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const startRecording = useCallback(async () => {
     try {
@@ -118,6 +164,62 @@ const TranscriptionApp = () => {
     await transcribeAudio(file);
   }, [toast]);
 
+  const saveTranscription = async (segments: TranscriptSegment[], audioData: Blob | File) => {
+    if (!user) return;
+
+    try {
+      const fileName = audioData instanceof File ? audioData.name : `recording-${Date.now()}.wav`;
+      const fileSize = audioData.size;
+      const duration = Math.round(recordingTime || 0);
+      const avgConfidence = segments.reduce((acc, seg) => acc + (seg.confidence || 0), 0) / segments.length;
+      const content = segments.map(s => `[${s.timestamp}] ${s.speaker}: ${s.text}`).join('\n\n');
+
+      const { data: transcription, error: transcriptionError } = await supabase
+        .from('transcriptions')
+        .insert({
+          user_id: user.id,
+          title: `Transcription - ${new Date().toLocaleDateString()}`,
+          content,
+          audio_duration: duration,
+          speaker_count: [...new Set(segments.map(s => s.speaker))].length,
+          confidence_score: avgConfidence,
+          file_name: fileName,
+          file_size: fileSize,
+        })
+        .select()
+        .single();
+
+      if (transcriptionError) throw transcriptionError;
+
+      // Save individual segments
+      const segmentInserts = segments.map((segment, index) => ({
+        transcription_id: transcription.id,
+        speaker_label: segment.speaker || 'Unknown',
+        text_content: segment.text,
+        confidence_score: segment.confidence || 0,
+        segment_order: index + 1,
+      }));
+
+      const { error: segmentsError } = await supabase
+        .from('transcription_segments')
+        .insert(segmentInserts);
+
+      if (segmentsError) throw segmentsError;
+
+      toast({
+        title: "Transcription Saved",
+        description: "Your transcription has been saved to your account.",
+      });
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: "Save Error",
+        description: "Failed to save transcription. You can still download it.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const transcribeAudio = useCallback(async (audioData: Blob | File) => {
     if (!isServiceReady) {
       toast({
@@ -133,6 +235,9 @@ const TranscriptionApp = () => {
     try {
       const segments = await transcriptionService.transcribeWithSpeakerDetection(audioData);
       setTranscripts(prev => [...prev, ...segments]);
+      
+      // Save to database
+      await saveTranscription(segments, audioData);
       
       toast({
         title: "Transcription Complete",
@@ -160,7 +265,7 @@ const TranscriptionApp = () => {
     } finally {
       setIsTranscribing(false);
     }
-  }, [isServiceReady, transcriptionService, toast]);
+  }, [isServiceReady, transcriptionService, toast, user, recordingTime]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -210,6 +315,30 @@ const TranscriptionApp = () => {
           <div className="absolute inset-0 bg-primary/80"></div>
         </div>
         <div className="relative container mx-auto px-4 py-20">
+          {/* User Info Header */}
+          <div className="flex justify-between items-center mb-8">
+            <div></div>
+            <div className="flex items-center gap-4">
+              {userProfile && (
+                <div className="text-right text-primary-foreground">
+                  <p className="font-medium">{userProfile.full_name}</p>
+                  <p className="text-sm text-primary-foreground/80">{userProfile.title}</p>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="text-primary-foreground border-primary-foreground/30 hover:bg-primary-foreground/10"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-primary-foreground mb-6">
               Legal Transcription Suite
