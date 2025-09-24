@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Upload, Mic, MicOff, Download, Copy, FileText, Loader2, LogOut, User } from 'lucide-react';
+import { Upload, Mic, MicOff, Download, Copy, FileText, Loader2, LogOut, User, Users, Briefcase, GraduationCap, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +17,15 @@ interface TranscriptSegment {
   confidence?: number;
 }
 
+type SessionType = 'legal_hearing' | 'arbitration' | 'meeting' | 'class' | 'other';
+
+interface SessionTypeOption {
+  value: SessionType;
+  label: string;
+  description: string;
+  icon: any;
+}
+
 const TranscriptionApp = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcripts, setTranscripts] = useState<TranscriptSegment[]>([]);
@@ -23,11 +33,45 @@ const TranscriptionApp = () => {
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [selectedSessionType, setSelectedSessionType] = useState<SessionType>('meeting');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptionService = TranscriptionService.getInstance();
   const { toast } = useToast();
   const { user, signOut } = useAuth();
+
+  const sessionTypeOptions: SessionTypeOption[] = [
+    { 
+      value: 'legal_hearing', 
+      label: 'Legal Hearing', 
+      description: 'Court proceedings, depositions, legal testimony',
+      icon: Briefcase 
+    },
+    { 
+      value: 'arbitration', 
+      label: 'Arbitration', 
+      description: 'Alternative dispute resolution sessions',
+      icon: Settings 
+    },
+    { 
+      value: 'meeting', 
+      label: 'Professional Meeting', 
+      description: 'Business meetings, conferences, interviews',
+      icon: Users 
+    },
+    { 
+      value: 'class', 
+      label: 'Educational Class', 
+      description: 'Lectures, seminars, training sessions',
+      icon: GraduationCap 
+    },
+    { 
+      value: 'other', 
+      label: 'Other', 
+      description: 'General transcription needs',
+      icon: FileText 
+    }
+  ];
 
   // Fetch user profile
   useEffect(() => {
@@ -173,13 +217,16 @@ const TranscriptionApp = () => {
       const duration = Math.round(recordingTime || 0);
       const avgConfidence = segments.reduce((acc, seg) => acc + (seg.confidence || 0), 0) / segments.length;
       const content = segments.map(s => `[${s.timestamp}] ${s.speaker}: ${s.text}`).join('\n\n');
+      
+      const sessionTypeLabel = sessionTypeOptions.find(opt => opt.value === selectedSessionType)?.label || 'Session';
 
       const { data: transcription, error: transcriptionError } = await supabase
         .from('transcriptions')
         .insert({
           user_id: user.id,
-          title: `Transcription - ${new Date().toLocaleDateString()}`,
+          title: `${sessionTypeLabel} - ${new Date().toLocaleDateString()}`,
           content,
+          session_type: selectedSessionType,
           audio_duration: duration,
           speaker_count: [...new Set(segments.map(s => s.speaker))].length,
           confidence_score: avgConfidence,
@@ -284,15 +331,51 @@ const TranscriptionApp = () => {
     });
   }, [transcripts, toast]);
 
-  const downloadTranscript = useCallback(() => {
-    const fullTranscript = transcripts.map(t => 
-      `[${t.timestamp}] ${t.speaker}${t.confidence ? ` (${(t.confidence * 100).toFixed(0)}%)` : ''}: ${t.text}`
-    ).join('\n\n');
-    const blob = new Blob([fullTranscript], { type: 'text/plain' });
+  const downloadTranscript = useCallback((format: 'txt' | 'json' | 'csv' = 'txt') => {
+    const sessionTypeLabel = sessionTypeOptions.find(opt => opt.value === selectedSessionType)?.label || 'transcript';
+    const timestamp = new Date().toISOString().split('T')[0];
+    let content = '';
+    let mimeType = 'text/plain';
+    let extension = 'txt';
+
+    switch (format) {
+      case 'json':
+        content = JSON.stringify({
+          sessionType: selectedSessionType,
+          sessionLabel: sessionTypeLabel,
+          date: new Date().toISOString(),
+          transcripts: transcripts.map(t => ({
+            id: t.id,
+            timestamp: t.timestamp,
+            speaker: t.speaker,
+            text: t.text,
+            confidence: t.confidence
+          }))
+        }, null, 2);
+        mimeType = 'application/json';
+        extension = 'json';
+        break;
+      case 'csv':
+        const csvHeaders = 'Timestamp,Speaker,Text,Confidence\n';
+        const csvRows = transcripts.map(t => 
+          `"${t.timestamp}","${t.speaker}","${t.text.replace(/"/g, '""')}","${t.confidence ? (t.confidence * 100).toFixed(0) : 'N/A'}"`
+        ).join('\n');
+        content = csvHeaders + csvRows;
+        mimeType = 'text/csv';
+        extension = 'csv';
+        break;
+      default:
+        content = transcripts.map(t => 
+          `[${t.timestamp}] ${t.speaker}${t.confidence ? ` (${(t.confidence * 100).toFixed(0)}%)` : ''}: ${t.text}`
+        ).join('\n\n');
+        break;
+    }
+
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `legal-transcript-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `${sessionTypeLabel.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.${extension}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -300,9 +383,9 @@ const TranscriptionApp = () => {
     
     toast({
       title: "Download Started",
-      description: "Your transcript is being downloaded.",
+      description: `Your transcript is being downloaded as ${extension.toUpperCase()} format.`,
     });
-  }, [transcripts, toast]);
+  }, [transcripts, selectedSessionType, sessionTypeOptions, toast]);
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -341,12 +424,12 @@ const TranscriptionApp = () => {
 
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-primary-foreground mb-6">
-              Legal Transcription Suite
+              Professional Transcription Suite
             </h1>
             <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
-              Professional audio and video transcription for legal proceedings, 
-              hearings, and case documentation. Powered by advanced AI with 
-              speaker identification and timestamp accuracy.
+              AI-powered transcription for legal proceedings, business meetings, 
+              educational classes, and professional sessions. Advanced speaker 
+              identification with timestamp precision and export flexibility.
             </p>
             {!isServiceReady && (
               <div className="flex items-center justify-center gap-2 text-primary-foreground/80">
@@ -360,6 +443,42 @@ const TranscriptionApp = () => {
 
       {/* Main App */}
       <div className="container mx-auto px-4 py-12">
+        {/* Session Type Selection */}
+        <Card className="mb-8 shadow-medium">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Session Configuration
+            </CardTitle>
+            <CardDescription>
+              Select the type of session you're transcribing for optimized processing
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedSessionType} onValueChange={(value: SessionType) => setSelectedSessionType(value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select session type" />
+              </SelectTrigger>
+              <SelectContent>
+                {sessionTypeOptions.map((option) => {
+                  const IconComponent = option.icon;
+                  return (
+                    <SelectItem key={option.value} value={option.value}>
+                      <div className="flex items-center gap-2">
+                        <IconComponent className="h-4 w-4" />
+                        <div>
+                          <div className="font-medium">{option.label}</div>
+                          <div className="text-xs text-muted-foreground">{option.description}</div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recording Controls */}
           <Card className="shadow-medium">
@@ -483,12 +602,28 @@ const TranscriptionApp = () => {
                       Copy
                     </Button>
                     <Button
-                      onClick={downloadTranscript}
+                      onClick={() => downloadTranscript('txt')}
                       variant="accent"
                       size="sm"
                     >
                       <Download className="h-4 w-4" />
-                      Download
+                      Text
+                    </Button>
+                    <Button
+                      onClick={() => downloadTranscript('json')}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Download className="h-4 w-4" />
+                      JSON
+                    </Button>
+                    <Button
+                      onClick={() => downloadTranscript('csv')}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Download className="h-4 w-4" />
+                      CSV
                     </Button>
                   </div>
                 )}
