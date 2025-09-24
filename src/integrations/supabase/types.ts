@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      hearings: {
+        Row: {
+          audio_duration: string | null
+          audio_result: Json | null
+          audio_type: string | null
+          case_brief: string | null
+          case_brief_annotation: Json | null
+          created_at: string
+          file_size: string | null
+          file_url: string | null
+          id: number
+          level: string | null
+          project_id: string
+          status: string | null
+          text_content: string | null
+          title: string | null
+          type: string | null
+          user_id: string | null
+          viewed: boolean
+        }
+        Insert: {
+          audio_duration?: string | null
+          audio_result?: Json | null
+          audio_type?: string | null
+          case_brief?: string | null
+          case_brief_annotation?: Json | null
+          created_at?: string
+          file_size?: string | null
+          file_url?: string | null
+          id?: number
+          level?: string | null
+          project_id: string
+          status?: string | null
+          text_content?: string | null
+          title?: string | null
+          type?: string | null
+          user_id?: string | null
+          viewed?: boolean
+        }
+        Update: {
+          audio_duration?: string | null
+          audio_result?: Json | null
+          audio_type?: string | null
+          case_brief?: string | null
+          case_brief_annotation?: Json | null
+          created_at?: string
+          file_size?: string | null
+          file_url?: string | null
+          id?: number
+          level?: string | null
+          project_id?: string
+          status?: string | null
+          text_content?: string | null
+          title?: string | null
+          type?: string | null
+          user_id?: string | null
+          viewed?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -47,6 +107,45 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          completed_items: number | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string | null
+          status: string | null
+          total_items: number | null
+          type: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_items?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          status?: string | null
+          total_items?: number | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_items?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          status?: string | null
+          total_items?: number | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -103,8 +202,8 @@ export type Database = {
           created_at: string
           file_name: string | null
           file_size: number | null
-          hearing_type: string | null
           id: string
+          session_type: string | null
           speaker_count: number | null
           title: string
           updated_at: string
@@ -118,8 +217,8 @@ export type Database = {
           created_at?: string
           file_name?: string | null
           file_size?: number | null
-          hearing_type?: string | null
           id?: string
+          session_type?: string | null
           speaker_count?: number | null
           title: string
           updated_at?: string
@@ -133,8 +232,8 @@ export type Database = {
           created_at?: string
           file_name?: string | null
           file_size?: number | null
-          hearing_type?: string | null
           id?: string
+          session_type?: string | null
           speaker_count?: number | null
           title?: string
           updated_at?: string
