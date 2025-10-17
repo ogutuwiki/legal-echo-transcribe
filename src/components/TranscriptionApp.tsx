@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Upload, Mic, MicOff, Download, Copy, FileText, Loader2, LogOut, User, Users, Briefcase, GraduationCap, Settings } from 'lucide-react';
+import { Upload, Mic, MicOff, Download, Copy, FileText, Loader2, LogOut, User, Users, Briefcase, GraduationCap, Settings, Sparkles, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +35,9 @@ const TranscriptionApp = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [selectedSessionType, setSelectedSessionType] = useState<SessionType>('meeting');
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiResult, setAiResult] = useState('');
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptionService = TranscriptionService.getInstance();
@@ -387,6 +391,60 @@ const TranscriptionApp = () => {
     });
   }, [transcripts, selectedSessionType, sessionTypeOptions, toast]);
 
+  const handleAiPrompt = async (action?: 'summarize') => {
+    if (transcripts.length === 0) {
+      toast({
+        title: "No Transcription",
+        description: "Please transcribe some audio first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAiProcessing(true);
+    setAiResult('');
+
+    try {
+      const fullTranscript = transcripts.map(t => 
+        `[${t.timestamp}] ${t.speaker}: ${t.text}`
+      ).join('\n\n');
+
+      const { data, error } = await supabase.functions.invoke('process-transcription', {
+        body: {
+          transcription: fullTranscript,
+          action: action || 'custom',
+          customPrompt: action ? null : aiPrompt,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setAiResult(data.result);
+      
+      if (!action) {
+        setAiPrompt('');
+      }
+
+      toast({
+        title: "AI Processing Complete",
+        description: action === 'summarize' ? "Transcription summarized successfully." : "Your request has been processed.",
+      });
+    } catch (error) {
+      console.error('AI processing error:', error);
+      toast({
+        title: "AI Processing Error",
+        description: error instanceof Error ? error.message : "Failed to process transcription with AI.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAiProcessing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Hero Section */}
@@ -662,6 +720,69 @@ const TranscriptionApp = () => {
                   </div>
                 ))}
               </div>
+
+              {/* AI Prompt Section */}
+              {transcripts.length > 0 && (
+                <div className="mt-8 border-t pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="h-5 w-5 text-accent" />
+                    <h3 className="text-lg font-semibold">AI Assistant</h3>
+                  </div>
+
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      onClick={() => handleAiPrompt('summarize')}
+                      variant="accent"
+                      disabled={isAiProcessing}
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Summarize
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Textarea
+                        placeholder="Ask AI to analyze, extract key points, create action items, or anything else..."
+                        value={aiPrompt}
+                        onChange={(e) => setAiPrompt(e.target.value)}
+                        className="flex-1 min-h-[80px]"
+                        disabled={isAiProcessing}
+                      />
+                      <Button
+                        onClick={() => handleAiPrompt()}
+                        disabled={!aiPrompt.trim() || isAiProcessing}
+                        size="lg"
+                      >
+                        {isAiProcessing ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+
+                    {isAiProcessing && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>AI is processing your request...</span>
+                      </div>
+                    )}
+
+                    {aiResult && (
+                      <div className="border rounded-lg p-4 bg-accent-muted/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="h-4 w-4 text-accent" />
+                          <span className="font-medium">AI Response</span>
+                        </div>
+                        <p className="text-card-foreground whitespace-pre-wrap leading-relaxed">
+                          {aiResult}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
