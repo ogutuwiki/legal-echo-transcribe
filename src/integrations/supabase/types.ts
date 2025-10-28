@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      credits: {
+        Row: {
+          created_at: string
+          id: string
+          remaining_credits: number
+          total_credits: number
+          updated_at: string
+          used_credits: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          remaining_credits?: number
+          total_credits?: number
+          updated_at?: string
+          used_credits?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          remaining_credits?: number
+          total_credits?: number
+          updated_at?: string
+          used_credits?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       hearings: {
         Row: {
           audio_duration: string | null
@@ -24,8 +54,10 @@ export type Database = {
           created_at: string
           file_size: string | null
           file_url: string | null
+          grouped: string | null
           id: number
           level: string | null
+          plain_text: string | null
           project_id: string
           status: string | null
           text_content: string | null
@@ -43,8 +75,10 @@ export type Database = {
           created_at?: string
           file_size?: string | null
           file_url?: string | null
+          grouped?: string | null
           id?: number
           level?: string | null
+          plain_text?: string | null
           project_id: string
           status?: string | null
           text_content?: string | null
@@ -62,8 +96,10 @@ export type Database = {
           created_at?: string
           file_size?: string | null
           file_url?: string | null
+          grouped?: string | null
           id?: number
           level?: string | null
+          plain_text?: string | null
           project_id?: string
           status?: string | null
           text_content?: string | null
@@ -71,6 +107,72 @@ export type Database = {
           type?: string | null
           user_id?: string | null
           viewed?: boolean
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          from_admin: boolean
+          id: string
+          read: boolean
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          from_admin?: boolean
+          id?: string
+          read?: boolean
+          subject: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          from_admin?: boolean
+          id?: string
+          read?: boolean
+          subject?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          credits_purchased: number
+          id: string
+          payment_method: string | null
+          status: string
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          credits_purchased: number
+          id?: string
+          payment_method?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credits_purchased?: number
+          id?: string
+          payment_method?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -82,6 +184,7 @@ export type Database = {
           license_number: string | null
           organization: string | null
           phone: string | null
+          suspended: boolean
           title: string | null
           updated_at: string
           user_id: string
@@ -93,6 +196,7 @@ export type Database = {
           license_number?: string | null
           organization?: string | null
           phone?: string | null
+          suspended?: boolean
           title?: string | null
           updated_at?: string
           user_id: string
@@ -104,6 +208,7 @@ export type Database = {
           license_number?: string | null
           organization?: string | null
           phone?: string | null
+          suspended?: boolean
           title?: string | null
           updated_at?: string
           user_id?: string
@@ -241,15 +346,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -376,6 +508,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
