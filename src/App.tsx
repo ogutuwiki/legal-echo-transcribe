@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import AdminUserProjects from "./pages/AdminUserProjects";
+import Organizations from "./pages/Organizations";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminUserProjects />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/organizations" 
+              element={
+                <ProtectedRoute>
+                  <Organizations />
                 </ProtectedRoute>
               } 
             />
