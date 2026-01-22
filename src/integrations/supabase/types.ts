@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          created_at: string
+          free_credit_amount: string | null
+          free_credits_enabled: boolean
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          free_credit_amount?: string | null
+          free_credits_enabled?: boolean
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          free_credit_amount?: string | null
+          free_credits_enabled?: boolean
+          id?: number
+        }
+        Relationships: []
+      }
       credits: {
         Row: {
           created_at: string
@@ -51,6 +72,7 @@ export type Database = {
           audio_type: string | null
           case_brief: string | null
           case_brief_annotation: Json | null
+          chat_history: Json | null
           created_at: string
           file_size: string | null
           file_url: string | null
@@ -62,6 +84,7 @@ export type Database = {
           status: string | null
           text_content: string | null
           title: string | null
+          turn_taking: string | null
           type: string | null
           user_id: string | null
           viewed: boolean
@@ -72,6 +95,7 @@ export type Database = {
           audio_type?: string | null
           case_brief?: string | null
           case_brief_annotation?: Json | null
+          chat_history?: Json | null
           created_at?: string
           file_size?: string | null
           file_url?: string | null
@@ -83,6 +107,7 @@ export type Database = {
           status?: string | null
           text_content?: string | null
           title?: string | null
+          turn_taking?: string | null
           type?: string | null
           user_id?: string | null
           viewed?: boolean
@@ -93,6 +118,7 @@ export type Database = {
           audio_type?: string | null
           case_brief?: string | null
           case_brief_annotation?: Json | null
+          chat_history?: Json | null
           created_at?: string
           file_size?: string | null
           file_url?: string | null
@@ -104,6 +130,7 @@ export type Database = {
           status?: string | null
           text_content?: string | null
           title?: string | null
+          turn_taking?: string | null
           type?: string | null
           user_id?: string | null
           viewed?: boolean
@@ -144,9 +171,11 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
-          credits_purchased: number
+          credits_purchased: number | null
           id: string
           payment_method: string | null
+          payment_type: string | null
+          raw_response: Json | null
           status: string
           transaction_id: string | null
           updated_at: string
@@ -155,9 +184,11 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
-          credits_purchased: number
+          credits_purchased?: number | null
           id?: string
           payment_method?: string | null
+          payment_type?: string | null
+          raw_response?: Json | null
           status?: string
           transaction_id?: string | null
           updated_at?: string
@@ -166,9 +197,11 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
-          credits_purchased?: number
+          credits_purchased?: number | null
           id?: string
           payment_method?: string | null
+          payment_type?: string | null
+          raw_response?: Json | null
           status?: string
           transaction_id?: string | null
           updated_at?: string
@@ -178,36 +211,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          company: string | null
           created_at: string
           full_name: string
+          history: Json | null
           id: string
           license_number: string | null
           organization: string | null
-          phone: string | null
+          phone_number: string | null
           suspended: boolean
           title: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          company?: string | null
           created_at?: string
           full_name: string
+          history?: Json | null
           id?: string
           license_number?: string | null
           organization?: string | null
-          phone?: string | null
+          phone_number?: string | null
           suspended?: boolean
           title?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          company?: string | null
           created_at?: string
           full_name?: string
+          history?: Json | null
           id?: string
           license_number?: string | null
           organization?: string | null
-          phone?: string | null
+          phone_number?: string | null
           suspended?: boolean
           title?: string | null
           updated_at?: string
