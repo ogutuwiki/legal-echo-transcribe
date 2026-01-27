@@ -4,6 +4,8 @@ import { ArrowLeft, Building2 } from 'lucide-react';
 import { useOrganization, OrganizationProvider } from '@/hooks/useOrganization';
 import OrganizationStats from '@/components/organization/OrganizationStats';
 import OrganizationMembers from '@/components/organization/OrganizationMembers';
+import OrganizationSettings from '@/components/organization/OrganizationSettings';
+import OrganizationNotifications from '@/components/organization/OrganizationNotifications';
 import CreateOrganizationCard from '@/components/organization/CreateOrganizationCard';
 
 const OrganizationsContent = () => {
@@ -43,9 +45,11 @@ const OrganizationsContent = () => {
         {!organization ? (
           <CreateOrganizationCard />
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
+            <OrganizationNotifications />
             <OrganizationStats />
             <OrganizationMembers />
+            <OrganizationSettings />
           </div>
         )}
       </div>
