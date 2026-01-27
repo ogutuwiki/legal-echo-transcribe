@@ -17,21 +17,24 @@ export type Database = {
       app_settings: {
         Row: {
           created_at: string
-          free_credit_amount: string | null
-          free_credits_enabled: boolean
+          details: string | null
           id: number
+          name: string | null
+          setting_value: string | null
         }
         Insert: {
           created_at?: string
-          free_credit_amount?: string | null
-          free_credits_enabled?: boolean
+          details?: string | null
           id?: number
+          name?: string | null
+          setting_value?: string | null
         }
         Update: {
           created_at?: string
-          free_credit_amount?: string | null
-          free_credits_enabled?: boolean
+          details?: string | null
           id?: number
+          name?: string | null
+          setting_value?: string | null
         }
         Relationships: []
       }
@@ -79,6 +82,7 @@ export type Database = {
           grouped: string | null
           id: number
           level: string | null
+          organization_id: string | null
           plain_text: string | null
           project_id: string
           status: string | null
@@ -102,6 +106,7 @@ export type Database = {
           grouped?: string | null
           id?: number
           level?: string | null
+          organization_id?: string | null
           plain_text?: string | null
           project_id: string
           status?: string | null
@@ -125,6 +130,7 @@ export type Database = {
           grouped?: string | null
           id?: number
           level?: string | null
+          organization_id?: string | null
           plain_text?: string | null
           project_id?: string
           status?: string | null
@@ -135,7 +141,15 @@ export type Database = {
           user_id?: string | null
           viewed?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hearings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -164,6 +178,80 @@ export type Database = {
           read?: boolean
           subject?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invited_at: string
+          joined_at: string | null
+          organization_id: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          shared_credits: number
+          updated_at: string
+          used_credits: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          shared_credits?: number
+          updated_at?: string
+          used_credits?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          shared_credits?: number
+          updated_at?: string
+          used_credits?: number
         }
         Relationships: []
       }
@@ -261,6 +349,7 @@ export type Database = {
           description: string | null
           id: string
           name: string | null
+          organization_id: string | null
           status: string | null
           total_items: number | null
           type: string | null
@@ -273,6 +362,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string | null
+          organization_id?: string | null
           status?: string | null
           total_items?: number | null
           type?: string | null
@@ -285,13 +375,22 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string | null
+          organization_id?: string | null
           status?: string | null
           total_items?: number | null
           type?: string | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transcription_segments: {
         Row: {
@@ -411,11 +510,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_org_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_org_member: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_org_owner: {
+        Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
     }

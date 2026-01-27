@@ -7,6 +7,7 @@ interface Organization {
   name: string;
   owner_id: string;
   shared_credits: number;
+  used_credits: number;
   created_at: string;
 }
 
@@ -18,6 +19,8 @@ interface OrganizationMember {
   status: 'pending' | 'accepted' | 'rejected';
   invited_at: string;
   joined_at: string | null;
+  allocated_credits?: number;
+  used_credits?: number;
   profile?: {
     full_name: string;
     title: string | null;
