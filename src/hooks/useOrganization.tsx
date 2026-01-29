@@ -55,6 +55,7 @@ interface OrganizationContextType {
   removeMember: (memberId: string) => Promise<{ error: any }>;
   respondToInvitation: (invitationId: string, accept: boolean) => Promise<{ error: any }>;
   leaveOrganization: (membershipId: string) => Promise<{ error: any }>;
+  selectOrganization: (orgId: string | null) => void;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
@@ -65,6 +66,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   const [members, setMembers] = useState<OrganizationMember[]>([]);
   const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([]);
   const [myMemberships, setMyMemberships] = useState<MyMembership[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -288,6 +290,31 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     return { error };
   };
 
+  const selectOrganization = async (orgId: string | null) => {
+    setSelectedOrgId(orgId);
+    
+    if (!orgId) {
+      setOrganization(null);
+      setMembers([]);
+      setIsOwner(false);
+      return;
+    }
+
+    // Fetch the organization details
+    const { data: orgData } = await supabase
+      .from('organizations' as any)
+      .select('*')
+      .eq('id', orgId)
+      .single();
+
+    if (orgData) {
+      const org = orgData as unknown as Organization;
+      setOrganization(org);
+      setIsOwner(org.owner_id === user?.id);
+      await fetchMembers(org.id);
+    }
+  };
+
   useEffect(() => {
     fetchOrganization();
   }, [user]);
@@ -306,7 +333,8 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
         inviteMember,
         removeMember,
         respondToInvitation,
-        leaveOrganization
+        leaveOrganization,
+        selectOrganization
       }}
     >
       {children}
