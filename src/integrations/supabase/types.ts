@@ -228,6 +228,8 @@ export type Database = {
       organizations: {
         Row: {
           created_at: string
+          free_credits: boolean | null
+          free_credits_expiry: string | null
           id: string
           name: string
           owner_id: string
@@ -237,6 +239,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          free_credits?: boolean | null
+          free_credits_expiry?: string | null
           id?: string
           name: string
           owner_id: string
@@ -246,6 +250,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          free_credits?: boolean | null
+          free_credits_expiry?: string | null
           id?: string
           name?: string
           owner_id?: string
@@ -350,6 +356,8 @@ export type Database = {
           id: string
           name: string | null
           organization_id: string | null
+          owner: string | null
+          owner_type: string | null
           status: string | null
           total_items: number | null
           type: string | null
@@ -363,6 +371,8 @@ export type Database = {
           id?: string
           name?: string | null
           organization_id?: string | null
+          owner?: string | null
+          owner_type?: string | null
           status?: string | null
           total_items?: number | null
           type?: string | null
@@ -376,6 +386,8 @@ export type Database = {
           id?: string
           name?: string | null
           organization_id?: string | null
+          owner?: string | null
+          owner_type?: string | null
           status?: string | null
           total_items?: number | null
           type?: string | null
