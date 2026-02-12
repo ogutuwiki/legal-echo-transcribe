@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminPayments from '@/components/admin/AdminPayments';
+import AdminOrganizations from '@/components/admin/AdminOrganizations';
 import { Loader2 } from 'lucide-react';
 
 const Admin = () => {
@@ -39,9 +40,10 @@ const Admin = () => {
 
         <Card className="p-6">
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsList className="grid w-full max-w-lg grid-cols-3">
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="payments">Payments</TabsTrigger>
+              <TabsTrigger value="organizations">Organizations</TabsTrigger>
             </TabsList>
             
             <TabsContent value="users" className="mt-6">
@@ -50,6 +52,10 @@ const Admin = () => {
             
             <TabsContent value="payments" className="mt-6">
               <AdminPayments />
+            </TabsContent>
+
+            <TabsContent value="organizations" className="mt-6">
+              <AdminOrganizations />
             </TabsContent>
           </Tabs>
         </Card>
