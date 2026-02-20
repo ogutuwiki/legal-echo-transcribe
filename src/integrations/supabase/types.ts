@@ -38,6 +38,39 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_requests: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          credits_approved: number | null
+          id: string
+          message: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          credits_approved?: number | null
+          id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          credits_approved?: number | null
+          id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credits: {
         Row: {
           created_at: string
