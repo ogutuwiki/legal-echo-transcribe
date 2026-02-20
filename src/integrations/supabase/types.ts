@@ -77,6 +77,9 @@ export type Database = {
           case_brief_annotation: Json | null
           chat_history: Json | null
           created_at: string
+          edited_grouped: string | null
+          edited_plain_text: string | null
+          edited_turn_taking: string | null
           file_size: string | null
           file_url: string | null
           grouped: string | null
@@ -101,6 +104,9 @@ export type Database = {
           case_brief_annotation?: Json | null
           chat_history?: Json | null
           created_at?: string
+          edited_grouped?: string | null
+          edited_plain_text?: string | null
+          edited_turn_taking?: string | null
           file_size?: string | null
           file_url?: string | null
           grouped?: string | null
@@ -125,6 +131,9 @@ export type Database = {
           case_brief_annotation?: Json | null
           chat_history?: Json | null
           created_at?: string
+          edited_grouped?: string | null
+          edited_plain_text?: string | null
+          edited_turn_taking?: string | null
           file_size?: string | null
           file_url?: string | null
           grouped?: string | null
