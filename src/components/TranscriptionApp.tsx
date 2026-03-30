@@ -469,6 +469,7 @@ const TranscriptionApp = () => {
                 </div>
               )}
               <div className="flex items-center gap-2">
+                <ReferralDashboard />
                 <CreditRequestDialog />
                 <Button
                   variant="outline"
