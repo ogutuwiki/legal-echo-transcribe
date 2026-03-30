@@ -157,6 +157,27 @@ const Auth = () => {
                       required
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="referralCode" className="flex items-center gap-1.5">
+                      <Gift className="h-3.5 w-3.5 text-primary" />
+                      Referral Code
+                      <span className="text-xs text-muted-foreground">(optional)</span>
+                    </Label>
+                    <Input
+                      id="referralCode"
+                      type="text"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                      placeholder="Enter referral code for bonus credits"
+                      className="border-primary/20 focus:border-primary"
+                    />
+                    {referralCode && (
+                      <p className="text-xs text-emerald-600 flex items-center gap-1">
+                        <Gift className="h-3 w-3" />
+                        You'll receive 3 bonus credits on signup!
+                      </p>
+                    )}
+                  </div>
                 </>
               )}
               
