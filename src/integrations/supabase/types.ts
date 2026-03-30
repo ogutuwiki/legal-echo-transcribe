@@ -193,6 +193,44 @@ export type Database = {
           },
         ]
       }
+      lecture_analysis: {
+        Row: {
+          content: Json
+          created_at: string | null
+          hearing_id: number | null
+          id: string
+          summary: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content: Json
+          created_at?: string | null
+          hearing_id?: number | null
+          id?: string
+          summary?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          hearing_id?: number | null
+          id?: string
+          summary?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecture_analysis_hearing_id_fkey"
+            columns: ["hearing_id"]
+            isOneToOne: false
+            referencedRelation: "hearings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
