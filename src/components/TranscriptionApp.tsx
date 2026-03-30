@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, Mic, MicOff, Download, Copy, FileText, Loader2, LogOut, User, Users, Briefcase, GraduationCap, Settings, Sparkles, Send } from 'lucide-react';
 import CreditRequestDialog from '@/components/CreditRequestDialog';
+import ReferralDashboard from '@/components/ReferralDashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -468,6 +469,7 @@ const TranscriptionApp = () => {
                 </div>
               )}
               <div className="flex items-center gap-2">
+                <ReferralDashboard />
                 <CreditRequestDialog />
                 <Button
                   variant="outline"

@@ -21,10 +21,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Process pending referral on first sign-in
+        if (event === 'SIGNED_IN' && session?.user) {
+          const pendingCode = localStorage.getItem('pending_referral_code');
+          if (pendingCode) {
+            localStorage.removeItem('pending_referral_code');
+            // Defer to avoid blocking auth flow
+            setTimeout(async () => {
+              try {
+                await supabase.rpc('process_referral', {
+                  _referred_user_id: session.user.id,
+                  _referral_code: pendingCode,
+                });
+              } catch (e) {
+                console.error('Referral processing failed:', e);
+              }
+            }, 2000);
+          }
+        }
       }
     );
 

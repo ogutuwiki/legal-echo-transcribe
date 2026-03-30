@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Scale } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, Scale, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,10 +17,21 @@ const Auth = () => {
   const [title, setTitle] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+
+  // Pre-fill referral code from URL
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      setReferralCode(ref);
+      setIsLogin(false); // Switch to signup if referral link
+    }
+  }, [searchParams]);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -72,6 +84,10 @@ const Auth = () => {
             });
           }
         } else {
+          // Store referral code to process after email verification
+          if (referralCode.trim()) {
+            localStorage.setItem('pending_referral_code', referralCode.trim());
+          }
           toast({
             title: 'Check Your Email',
             description: 'We sent you a confirmation link. Please check your email to activate your account.',
@@ -140,6 +156,27 @@ const Auth = () => {
                       placeholder="e.g., District Judge, Defense Attorney"
                       required
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="referralCode" className="flex items-center gap-1.5">
+                      <Gift className="h-3.5 w-3.5 text-primary" />
+                      Referral Code
+                      <span className="text-xs text-muted-foreground">(optional)</span>
+                    </Label>
+                    <Input
+                      id="referralCode"
+                      type="text"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                      placeholder="Enter referral code for bonus credits"
+                      className="border-primary/20 focus:border-primary"
+                    />
+                    {referralCode && (
+                      <p className="text-xs text-emerald-600 flex items-center gap-1">
+                        <Gift className="h-3 w-3" />
+                        You'll receive 3 bonus credits on signup!
+                      </p>
+                    )}
                   </div>
                 </>
               )}
