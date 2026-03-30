@@ -24,6 +24,15 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
+  // Pre-fill referral code from URL
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      setReferralCode(ref);
+      setIsLogin(false); // Switch to signup if referral link
+    }
+  }, [searchParams]);
+
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
