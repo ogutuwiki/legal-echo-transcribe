@@ -84,6 +84,10 @@ const Auth = () => {
             });
           }
         } else {
+          // Store referral code to process after email verification
+          if (referralCode.trim()) {
+            localStorage.setItem('pending_referral_code', referralCode.trim());
+          }
           toast({
             title: 'Check Your Email',
             description: 'We sent you a confirmation link. Please check your email to activate your account.',
