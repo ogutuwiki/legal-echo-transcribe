@@ -393,6 +393,7 @@ export type Database = {
           license_number: string | null
           organization: string | null
           phone_number: string | null
+          referral_code: string | null
           suspended: boolean
           title: string | null
           updated_at: string
@@ -407,6 +408,7 @@ export type Database = {
           license_number?: string | null
           organization?: string | null
           phone_number?: string | null
+          referral_code?: string | null
           suspended?: boolean
           title?: string | null
           updated_at?: string
@@ -421,6 +423,7 @@ export type Database = {
           license_number?: string | null
           organization?: string | null
           phone_number?: string | null
+          referral_code?: string | null
           suspended?: boolean
           title?: string | null
           updated_at?: string
@@ -483,6 +486,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_credits_awarded: number
+          referred_user_id: string
+          referrer_credits_awarded: number
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_credits_awarded?: number
+          referred_user_id: string
+          referrer_credits_awarded?: number
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_credits_awarded?: number
+          referred_user_id?: string
+          referrer_credits_awarded?: number
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: []
       }
       transcription_segments: {
         Row: {
@@ -602,6 +638,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: { _user_id: string }; Returns: string }
       get_user_org_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -616,6 +653,10 @@ export type Database = {
       }
       is_org_owner: {
         Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      process_referral: {
+        Args: { _referral_code: string; _referred_user_id: string }
         Returns: boolean
       }
     }
